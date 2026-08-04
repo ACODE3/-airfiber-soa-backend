@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+credentials.json
+credensials.json
+service-account.json
+google-credentials.json
+*.log
+.DS_Store
+Thumbs.db
