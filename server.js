@@ -41,17 +41,6 @@ app.set("trust proxy", 1);
 //=============================================
 
 
-//MongoDB connection ======================
-// Old Mongoose Connection 
-// mongoose
-//   .connect(process.env.MONGODB_URI, {
-//     serverSelectionTimeoutMS: 10000,
-//   })
-//   .then(() => console.log("Connected to MongoDB"))
-//   .catch((error) => {
-//     console.log("MongoDB connection error:", error.message);
-//   });
-//=========================================
 
 // New conncetion 
 // const PORT = process.env.PORT || 5000;
@@ -72,14 +61,30 @@ app.set("trust proxy", 1);
 //   }
 // }
 
-// TEST 
+
+
+app.use(express.json());
+
+
+//Login route
+app.use(login);
+// Search Post Function For getting a single Client from MongoDB
+app.use(searchClient);
+//Automatic sync for button route
+app.use(automaticSync);
+//Manual sync for button route
+app.use(manualSync);
+//Admin route
+app.use(admin); 
 
 const PORT = process.env.PORT || 5000;
+
+// Start server immediately
 app.listen(PORT, () => {
   console.log(`Running on ${PORT}`);
 });
 
-// Check outbound IP once during startup
+// Check outbound IP
 fetch("https://api.ipify.org?format=json")
   .then((response) => response.json())
   .then((data) => {
@@ -89,12 +94,10 @@ fetch("https://api.ipify.org?format=json")
     console.error("Could not detect outbound IP:", error.message);
   });
 
-// Connect to MongoDB after the server starts listening
+// Connect to MongoDB
 dbConnect()
   .then(() => {
     console.log("MongoDB connected successfully");
-
-    // Start sync only after MongoDB connects
     startAutomaticSync();
   })
   .catch((error) => {
@@ -102,47 +105,3 @@ dbConnect()
   });
 
 
-
-//tester
-// app.get("/", (req, res) => {
-//   res.send("SOA backend is running");
-// });
-
-// app.get("/db-test", (req, res) => {
-//   res.json({
-//     readyState: mongoose.connection.readyState,
-//     status:
-//       mongoose.connection.readyState === 1
-//         ? "connected"
-//         : "not connected",
-//   });
-// });
-
-// app.get("/env-test", (req, res) => {
-//   res.json({
-//     mongodb: !!process.env.MONGODB_URI,
-//     spreadsheet: !!process.env.SPREADSHEET_ID,
-//     googleCredentialsBase64: !!process.env.GOOGLE_CREDENTIALS_BASE64,
-//   });
-// });
-
-
-
-//Login route
-app.use(login);
-
-// Search Post Function For getting a single Client from MongoDB
-app.use(searchClient);
-
-//Automatic sync for button route
-app.use(automaticSync);
-
-//Manual sync for button route
-app.use(manualSync);
-
-//Admin route
-app.use(admin); 
-
-
-
-startServer();
