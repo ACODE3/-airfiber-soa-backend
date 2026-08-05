@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const ClientDB = require("../models/Client");
+const ClientDB = require("../models/client");
 
 
 const {

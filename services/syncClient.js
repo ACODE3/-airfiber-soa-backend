@@ -4,7 +4,7 @@ const {
   getCell,
   buildBillingMap,
 } = require("../googleSheetsHelper");
-const ClientDB = require("../models/Client");
+const ClientDB = require("../models/client");
 
 async function syncClients() {
   console.log("Starting client synchronization...");

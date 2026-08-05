@@ -24,8 +24,8 @@ const manualSync = require("./syncFunction/ManualSync");
 
 //Cors Protections
 const allowedOrigins = [
-  "https://athirdlab.com",
-  "https://www.athirdlab.com",
+  "https://airfiberphilippines.com",
+  "https://www.airfiberphilippines.com",
 ];
 //Protected via the CORS 
 app.use(
