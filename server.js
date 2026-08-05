@@ -79,29 +79,20 @@ app.use(admin);
 
 const PORT = process.env.PORT || 5000;
 
-// Start server immediately
-app.listen(PORT, () => {
-  console.log(`Running on ${PORT}`);
-});
-
-// Check outbound IP
-fetch("https://api.ipify.org?format=json")
-  .then((response) => response.json())
-  .then((data) => {
-    console.log("Hostinger outbound IP:", data.ip);
-  })
-  .catch((error) => {
-    console.error("Could not detect outbound IP:", error.message);
+async function startServer() {
+  app.listen(PORT, () => {
+    console.log(`Running on ${PORT}`);
   });
 
-// Connect to MongoDB
-dbConnect()
-  .then(() => {
+  try {
+    await dbConnect();
     console.log("MongoDB connected successfully");
-    startAutomaticSync();
-  })
-  .catch((error) => {
-    console.error("MongoDB connection error:", error.message);
-  });
 
+    startAutomaticSync();
+  } catch (error) {
+    console.error("MongoDB connection error:", error.message);
+  }
+}
+
+startServer();
 
