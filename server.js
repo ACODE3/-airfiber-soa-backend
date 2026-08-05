@@ -41,30 +41,7 @@ app.set("trust proxy", 1);
 //=============================================
 
 
-
-// New conncetion 
-// const PORT = process.env.PORT || 5000;
-// app.use(express.json());
-
-// async function startServer() {
-//   try {
-//     await dbConnect();
-
-//     startAutomaticSync();
-
-//     app.listen(PORT, () => {
-//       console.log(`Running on ${PORT}`);
-//     });
-//   } catch (error) {
-//     console.error("Server could not start:", error.message);
-//     process.exit(1);
-//   }
-// }
-
-
-
 app.use(express.json());
-
 
 //Login route
 app.use(login);
