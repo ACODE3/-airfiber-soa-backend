@@ -54,23 +54,54 @@ app.set("trust proxy", 1);
 //=========================================
 
 // New conncetion 
+// const PORT = process.env.PORT || 5000;
+// app.use(express.json());
+
+// async function startServer() {
+//   try {
+//     await dbConnect();
+
+//     startAutomaticSync();
+
+//     app.listen(PORT, () => {
+//       console.log(`Running on ${PORT}`);
+//     });
+//   } catch (error) {
+//     console.error("Server could not start:", error.message);
+//     process.exit(1);
+//   }
+// }
+
+// TEST 
+
 const PORT = process.env.PORT || 5000;
-app.use(express.json());
+app.listen(PORT, () => {
+  console.log(`Running on ${PORT}`);
+});
 
-async function startServer() {
-  try {
-    await dbConnect();
+// Check outbound IP once during startup
+fetch("https://api.ipify.org?format=json")
+  .then((response) => response.json())
+  .then((data) => {
+    console.log("Hostinger outbound IP:", data.ip);
+  })
+  .catch((error) => {
+    console.error("Could not detect outbound IP:", error.message);
+  });
 
+// Connect to MongoDB after the server starts listening
+dbConnect()
+  .then(() => {
+    console.log("MongoDB connected successfully");
+
+    // Start sync only after MongoDB connects
     startAutomaticSync();
+  })
+  .catch((error) => {
+    console.error("MongoDB connection error:", error.message);
+  });
 
-    app.listen(PORT, () => {
-      console.log(`Running on ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Server could not start:", error.message);
-    process.exit(1);
-  }
-}
+
 
 //tester
 // app.get("/", (req, res) => {
