@@ -10,7 +10,7 @@ async function syncClients() {
   console.log("Starting client synchronization...");
 
   // 1. Get values from Google Sheets
-  const values = await getSheetValues("FS IMUS!A3:BN400");
+  const values = await getSheetValues("FS IMUS!A3:DI500");
 
   if (!Array.isArray(values) || values.length < 2) {
     throw new Error("Google Sheet header rows are missing");
