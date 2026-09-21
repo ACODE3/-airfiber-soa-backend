@@ -51,6 +51,9 @@ async function syncClients() {
 
   let savedCount = 0;
   let skippedCount = 0;
+  let errorCount = 0;
+  const sampleErrors = [];
+  const syncedCnos = [];
 
   for (const client of clients) {
     // Skip blank rows or rows without client code
@@ -64,27 +67,42 @@ async function syncClients() {
     client.stoken = String(client.stoken || "").trim();
     client.due = String(client.due || "").trim();
 
-    await ClientDB.findOneAndUpdate(
-      { cno: client.cno },
-      { $set: client },
-      {
-        upsert: true,
-        returnDocument: "after",
-        runValidators: true,
-        setDefaultsOnInsert: true,
-      }
-    );
+    try {
+      await ClientDB.findOneAndUpdate(
+        { cno: client.cno },
+        { $set: client },
+        {
+          upsert: true,
+          returnDocument: "after",
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        }
+      );
 
-    savedCount++;
+      savedCount++;
+      syncedCnos.push(client.cno);
+    } catch (error) {
+      errorCount++;
+      if (sampleErrors.length < 5) {
+        sampleErrors.push(`${client.cno}: ${error.message}`);
+      }
+    }
   }
+
+  const staleInDb = await ClientDB.countDocuments({
+    cno: { $nin: syncedCnos },
+  });
 
   console.log("Client synchronization completed.");
 
   return {
     message: "Clients synced successfully",
     totalRows: clients.length,
-    savedCount,
-    skippedCount,
+    saved: savedCount,
+    skipped: skippedCount,
+    errorCount,
+    sampleErrors,
+    staleInDb,
   };
 }
 

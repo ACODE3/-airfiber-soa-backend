@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const User = require("../models/userModel");
 
-const { loginLimiter } = require("../middleware/Middleware");
+const { loginLimiter, verifyToken } = require("../middleware/Middleware");
 
 const router = express.Router();
 
@@ -80,6 +80,30 @@ router.post("/api/auth/login", loginLimiter, async (req, res) => {
     return res.status(500).json({
       message: "Server error",
     });
+  }
+});
+
+// Verifies the stored token and returns the current user, used by the
+// dashboard on page load / refresh.
+router.get("/api/auth/me", verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("username role");
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid session" });
+    }
+
+    return res.status(200).json({
+      user: {
+        id: user._id,
+        name: user.username,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Auth me failed:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 });
 

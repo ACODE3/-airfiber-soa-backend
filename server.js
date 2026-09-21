@@ -20,6 +20,7 @@ const {
 
 
 const manualSync = require("./syncFunction/ManualSync");
+const soaDashboard = require("./syncFunction/SoaDashboard");
 
 
 //Cors Protections
@@ -52,7 +53,9 @@ app.use(automaticSync);
 //Manual sync for button route
 app.use(manualSync);
 //Admin route
-app.use(admin); 
+app.use(admin);
+//SOA dashboard: status, sync history, client preview
+app.use(soaDashboard);
 
 const PORT = process.env.PORT || 5000;
 

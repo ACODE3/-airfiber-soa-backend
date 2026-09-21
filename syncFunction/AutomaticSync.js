@@ -1,14 +1,16 @@
 const cron = require("node-cron");
 const express = require("express");
 
-const syncClients = require("../services/syncClient");
-
 const {
   verifyToken,
   authorizeRoles,
 } = require("../middleware/Middleware");
 
+const { runTrackedSync, isSyncRunning } = require("./runTrackedSync");
+
 const router = express.Router();
+
+const CRON_EXPRESSION = "*/7 * * * *";
 
 // Stores the cron task
 let automaticSyncTask = null;
@@ -16,29 +18,22 @@ let automaticSyncTask = null;
 // Is the automatic schedule currently active?
 let isScheduleActive = false;
 
-// Prevents two syncs from running at the same time
-let isSyncing = false;
 
-
-// Runs the actual Google Sheets → MongoDB sync
+// Runs the actual Google Sheets → MongoDB sync and records it in history
 async function runSync() {
-  if (isSyncing) {
+  if (isSyncRunning()) {
     console.log("A synchronization is already running. Skipping...");
     return;
   }
 
-  isSyncing = true;
-
   try {
     console.log("Running automatic client sync...");
 
-    await syncClients();
+    await runTrackedSync({ trigger: "automatic", triggeredBy: "cron" });
 
     console.log("Automatic sync completed.");
   } catch (error) {
     console.error("Automatic sync failed:", error);
-  } finally {
-    isSyncing = false;
   }
 }
 
@@ -52,7 +47,7 @@ function startAutomaticSync() {
   // Create the task only once
   if (!automaticSyncTask) {
     automaticSyncTask = cron.schedule(
-      "*/7 * * * *",
+      CRON_EXPRESSION,
       runSync
     );
 
@@ -98,6 +93,15 @@ function destroySync() {
   console.log("Automatic sync schedule destroyed.");
 
   return true;
+}
+
+
+// Current schedule state, used by the dashboard status endpoint
+function getAutoStatus() {
+  return {
+    active: isScheduleActive,
+    cron: CRON_EXPRESSION,
+  };
 }
 
 
@@ -167,4 +171,7 @@ router.post(
 module.exports = {
   router,
   startAutomaticSync,
+  stopSync,
+  destroySync,
+  getAutoStatus,
 };
