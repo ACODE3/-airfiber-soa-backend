@@ -89,9 +89,12 @@ async function syncClients() {
     }
   }
 
-  const staleInDb = await ClientDB.countDocuments({
-    cno: { $nin: syncedCnos },
-  });
+  // Avoid a raw $nin filter: this project has `sanitizeFilter` enabled
+  // globally (see dbConnect.js), which on this Mongoose version breaks
+  // casting for query operators nested under a field (`{ field: { $op } }`).
+  // Counting instead sidesteps the operator entirely.
+  const totalInDb = await ClientDB.countDocuments({});
+  const staleInDb = Math.max(totalInDb - syncedCnos.length, 0);
 
   console.log("Client synchronization completed.");
 

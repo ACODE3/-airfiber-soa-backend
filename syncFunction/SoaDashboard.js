@@ -24,9 +24,15 @@ function escapeRegex(text) {
 // Overview: client count, last run, automatic schedule state.
 router.get("/api/soa/status", verifyToken, authorizeRoles("admin"), async (req, res) => {
   try {
+    // No status filter here: this project has `sanitizeFilter` enabled
+    // globally (see dbConnect.js), which on this Mongoose version breaks
+    // casting for query operators nested under a field (`{ field: { $op } }`,
+    // e.g. `{ status: { $ne: "running" } }`). The most recent run is a fine
+    // stand-in even if it happens to still be "running" - the frontend
+    // already falls back to `startedAt` when `finishedAt` isn't set yet.
     const [clientCount, lastRun] = await Promise.all([
       ClientDB.countDocuments({}),
-      SyncRun.findOne({ status: { $ne: "running" } }).sort({ startedAt: -1 }),
+      SyncRun.findOne({}).sort({ startedAt: -1 }),
     ]);
 
     return res.status(200).json({
