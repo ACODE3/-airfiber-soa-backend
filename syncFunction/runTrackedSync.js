@@ -20,15 +20,20 @@ async function runTrackedSync({ trigger, triggeredBy }) {
 
   isSyncing = true;
   const startedAt = new Date();
+  let run = null;
 
-  const run = await SyncRun.create({
-    trigger,
-    triggeredBy: triggeredBy || "",
-    status: "running",
-    startedAt,
-  });
-
+  // Everything - including creating the history record - lives inside this
+  // try/finally, so the lock always releases even if MongoDB itself is
+  // unreachable right at the start. A lock that can get stuck `true` forever
+  // (until a manual server restart) is worse than a sync that fails cleanly.
   try {
+    run = await SyncRun.create({
+      trigger,
+      triggeredBy: triggeredBy || "",
+      status: "running",
+      startedAt,
+    });
+
     const result = await syncClients();
     const finishedAt = new Date();
 
@@ -47,11 +52,16 @@ async function runTrackedSync({ trigger, triggeredBy }) {
   } catch (error) {
     const finishedAt = new Date();
 
-    run.status = "error";
-    run.finishedAt = finishedAt;
-    run.durationMs = finishedAt - startedAt;
-    run.failureMessage = error.message;
-    await run.save();
+    // If SyncRun.create() itself is what failed, there's no document to
+    // record the failure on - swallow a failed save here so the original
+    // error (not a secondary DB error) is what the caller sees.
+    if (run) {
+      run.status = "error";
+      run.finishedAt = finishedAt;
+      run.durationMs = finishedAt - startedAt;
+      run.failureMessage = error.message;
+      await run.save().catch(() => {});
+    }
 
     throw error;
   } finally {

@@ -21,6 +21,7 @@ const {
 
 const manualSync = require("./syncFunction/ManualSync");
 const soaDashboard = require("./syncFunction/SoaDashboard");
+const networkDiagnostics = require("./services/networkDiagnostics");
 
 
 //Cors Protections
@@ -56,6 +57,8 @@ app.use(manualSync);
 app.use(admin);
 //SOA dashboard: status, sync history, client preview
 app.use(soaDashboard);
+//TEMPORARY: outbound IP check, see services/networkDiagnostics.js
+app.use(networkDiagnostics);
 
 const PORT = process.env.PORT || 5000;
 
